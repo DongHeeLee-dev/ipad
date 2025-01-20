@@ -40,13 +40,16 @@ const searchInputEl = searchWrapEl.querySelector('input')
 const searchDelayEls = [...searchWrapEl.querySelectorAll('li')]
 
 searchStarterEl.addEventListener('click', showSearch)
-searchCloserEl.addEventListener('click', hideSearch)
+searchCloserEl.addEventListener('click', function (event) {
+  event.stopPropagation()
+  hideSearch()
+})
 searchShadowEl.addEventListener('click', hideSearch)
 
 
 function showSearch() {
   headerEl.classList.add('searching')
-  document.documentElement.classList.add('fixed')
+  stopscroll()
   headerMenuEls.reverse().forEach(function (el, index) {
     el.style.transitionDelay = index * .4 / headerMenuEls.length + 's'
   })
@@ -59,7 +62,7 @@ function showSearch() {
 }
 function hideSearch() {
   headerEl.classList.remove('searching')
-  document.documentElement.classList.remove('fixed')
+  playscroll()
   headerMenuEls.reverse().forEach(function (el, index) {
     el.style.transitionDelay = index * .4 / headerMenuEls.length + 's'
   })
@@ -69,8 +72,76 @@ function hideSearch() {
   searchDelayEls.reverse()
   searchInputEl.value = ''
 }
+function playscroll() {
+  document.documentElement.classList.remove('fixed')
+}
+function stopscroll() {
+  document.documentElement.classList.add('fixed')
+}
 
-//요소의 가시성 관찰 
+
+/// 헤더 메뉴 토글 
+const menuStarterEl = document.querySelector('header .menu-starter')
+menuStarterEl.addEventListener('click', function () {
+  if (headerEl.classList.contains('menuing')) {
+    headerEl.classList.remove('menuing')
+    searchInputEl.value = ''
+    playscroll()
+  } else {
+    headerEl.classList.add('menuing')
+    stopscroll()
+  }
+})
+
+// 헤더 검색
+const searchTextFieldEl = document.querySelector('header .textfield')
+const searchCancelEl = document.querySelector('header .search-canceler')
+searchTextFieldEl.addEventListener('click' , function () {
+  headerEl.classList.add('searching--mobile')
+  searchInputEl.focus()
+})
+searchCancelEl.addEventListener('click', function () {
+  headerEl.classList.remove('searching--mobile')
+})
+
+// 
+window.addEventListener('resize', function () {
+  if(window.innerWidth <= 740) {
+    headerEl.classList.remove('searching')
+  } else {
+    headerEl.classList.remove('searching--mobile')
+  }
+})
+
+
+
+//
+const navEl = document.querySelector('nav')
+const navMenuToggleEl = navEl.querySelector('.menu-toggler')
+const navMenuShadowEl = navEl.querySelector('.shadow')
+
+navMenuToggleEl.addEventListener('click', function () {
+  if (navEl.classList.contains('menuing')) {
+    hideNavMenu()
+  } else {
+    showNavMenu()
+  }
+})
+navEl.addEventListener('click', function (event) {
+  event.stopPropagation()
+})
+navMenuShadowEl.addEventListener ('click', hideNavMenu)
+window.addEventListener('click', hideNavMenu)
+function showNavMenu() {
+  navEl.classList.add('menuing')
+}
+function hideNavMenu() {
+  navEl.classList.remove('menuing')
+}
+
+
+
+// 요소의 가시성 관찰 
 const io =  new IntersectionObserver(function (entries) {
   entries.forEach(function (entry) {
     if (!entry.isIntersecting) {
@@ -146,6 +217,7 @@ navigations.forEach(function (nav) {
   mapEl.innerHTML =/* html */ `
   <h3>
     <span class="text">${nav.title}</span>
+    <span class="icon">+</span>
   </h3>
   <ul>
     ${mapList}
@@ -157,3 +229,11 @@ navigations.forEach(function (nav) {
 
 const thisYearEl = document.querySelector('span.this-year')
 thisYearEl.textContent = new Date().getFullYear()
+
+const mapEls = document.querySelectorAll('footer .navigations .map')
+mapEls.forEach(function (el) {
+  const h3El = el.querySelector('h3')
+  h3El.addEventListener('click', function () {
+    el.classList.toggle('active')
+  })
+})
